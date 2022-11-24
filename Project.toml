@@ -1,0 +1,13 @@
+name = "PathPlanning"
+uuid = "61bdd07c-9d8f-4376-87b7-d768bb2910e4"
+authors = ["jinbeizame007 <jinbeizame007@gmail.com> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
