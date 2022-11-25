@@ -3,7 +3,7 @@ module Planners
 using StaticArrays: SVector, SA
 
 # from rrt.jl
-export Node
+export Node, RRT
 
 include("rrt.jl")
 
