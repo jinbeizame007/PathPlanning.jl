@@ -3,6 +3,10 @@ uuid = "61bdd07c-9d8f-4376-87b7-d768bb2910e4"
 authors = ["jinbeizame007 <jinbeizame007@gmail.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+
 [compat]
 julia = "1"
 
