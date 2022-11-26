@@ -4,6 +4,7 @@ on:
   pull_request:
 jobs:
   test:
+    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ matrix.group }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -14,6 +15,15 @@ jobs:
           - macOS-latest
         arch:
           - x64
+        include:
+          - arch: x86
+            version: '1.8'
+            os: ubuntu-latest
+            group: 'group-A'
+          - arch: x86
+            version: '1.8'
+            os: macOS-latest
+            group: 'group-A'
     steps:
       - uses: actions/checkout@v1.0.0
       - uses: julia-actions/setup-julia@v1
