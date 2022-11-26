@@ -5,9 +5,14 @@ using StaticArrays
     position = SVector{2,Float64}(1.0, 2.0)
     node = Node(position)
     @test node.position == position
+
+    node1 = Node(SA[0.0, 0.0])
+    node2 = Node(SA[1.0, 1.0])
+    @test calc_distance(node1, node2) ≈ 2.0^0.5
+    @test calc_distance(node2, node1) ≈ 2.0^0.5
 end
 
-@testset "RRT" begin
+@testset "RRT-Init" begin
     low = SA[0.0, 0.0]
     high = SA[5.0, 5.0]
 
