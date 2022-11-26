@@ -92,7 +92,13 @@ end
     start = SA[1.0, 1.0]
     goal = SA[4.0, 4.0]
 
-    rrt = RRT(start, goal, low, high; step_size=0.5, max_iter=10000)
+    rrt = RRT(start, goal, low, high; step_size=0.3, max_iter=5000)
     path = plan(rrt)
     @test length(path) > 0
+
+    @test all(path[1] == rrt.start)
+    @test all(path[end] == rrt.goal)
+
+    tol = 1e-8
+    @test all([calc_distance(path[i], path[i+1]) <= rrt.step_size + tol for i in 1:length(path)-1])
 end
