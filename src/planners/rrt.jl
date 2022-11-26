@@ -17,6 +17,7 @@ mutable struct RRT{N}
     low::SVector{N,Float64}
     high::SVector{N,Float64}
     nodes::Vector{Node{N}}
+    goal_sample_rate::Float64
     step_size::Float64
     max_iter::Int64
 end
@@ -26,7 +27,8 @@ function RRT(
     goal::SVector{N,Float64},
     low::SVector{N,Float64},
     high::SVector{N,Float64};
-    step_size::Union{Float64,Nothing}=nothing,
+    goal_sample_rate::Float64 = 0.1,
+    step_size::Union{Float64,Nothing} = nothing,
     max_iter::Int64 = 500
 ) where {N}
     if any(high .<= low)
@@ -46,7 +48,7 @@ function RRT(
         step_size = sum((goal - start).^2.0)^0.5 / 50.0
     end
 
-    return RRT{N}(Node(start), Node(goal), low, high, nodes, step_size, max_iter)
+    return RRT{N}(Node(start), Node(goal), low, high, nodes, goal_sample_rate, step_size, max_iter)
 end
 
 function sample(rrt::RRT{N})::Node{N} where {N}
@@ -96,7 +98,11 @@ function plan(
 
     for i in 1:rrt.max_iter
         # Sample a node
-        new_node = sample(rrt)
+        new_node = if rand() < rrt.goal_sample_rate
+            Node(rrt.goal.position)
+        else
+            sample(rrt)
+        end
 
         # Get the nearest node
         nearest_node_index = get_nearest_node_index(rrt, new_node)
