@@ -70,6 +70,22 @@ end
     @test calc_distance(nearest_node, extended_node) ≈ rrt.step_size
 end
 
+@testset "RRT-IsNearTheGoal" begin
+    rrt = get_default_rrt()
+    node_nearest_goal = get_extended_node(rrt, rrt.start, rrt.goal)
+
+    tol = 1e-8
+    nearest_node1 = Node(rrt.goal.position + SA[rrt.step_size - tol, 0.0])
+    nearest_node2 = Node(rrt.goal.position + SA[0.0, rrt.step_size - tol])
+    nearest_node3 = Node(rrt.goal.position - SA[rrt.step_size - tol, 0.0])
+    nearest_node4 = Node(rrt.goal.position - SA[0.0, rrt.step_size - tol])
+
+    @test is_near_the_goal(rrt, nearest_node1)
+    @test is_near_the_goal(rrt, nearest_node2)
+    @test is_near_the_goal(rrt, nearest_node3)
+    @test is_near_the_goal(rrt, nearest_node4)
+end
+
 @testset "RRT-Plan" begin
     low = SA[0.0, 0.0]
     high = SA[5.0, 5.0]
