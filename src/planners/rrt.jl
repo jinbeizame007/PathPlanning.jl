@@ -62,7 +62,7 @@ function get_nearest_node_index(rrt::RRT{N}, new_node::Node{N})::Int64 where {N}
 end
 
 function get_extended_node(rrt::RRT{N}, nearest_node::Node{N}, new_node::Node{N})::Node{N} where {N}
-    delta = nearest_node.position - new_node.position
+    delta = new_node.position - nearest_node.position
     distance = calc_distance(nearest_node, new_node)
     
     position = nearest_node.position + delta * (rrt.step_size / distance)

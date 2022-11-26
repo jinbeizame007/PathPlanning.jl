@@ -27,7 +27,18 @@ end
     start = SA[1.0, 1.0]
     goal = SA[4.0, 4.0]
 
-    @test_nowarn RRT(start, goal, low, high)
+    goal_sample_rate = 0.1
+    step_size = 0.5
+    max_iter = 100
+
+    rrt = RRT(start, goal, low, high; goal_sample_rate=goal_sample_rate, step_size=step_size, max_iter=max_iter)
+    @test all(rrt.start.position .== start)
+    @test all(rrt.goal.position .== goal)
+    @test all(rrt.low .== low)
+    @test all(rrt.high .== high)
+    @test rrt.goal_sample_rate == goal_sample_rate
+    @test rrt.step_size == step_size
+    @test rrt.max_iter == max_iter
 
     @test_throws DomainError RRT(start, goal, SA[5.0, 5.0], SA[0.0, 0.0])
     @test_throws DomainError RRT(SA[-1.0, -1.0], goal, low, high)
@@ -68,6 +79,8 @@ end
     extended_node = get_extended_node(rrt, nearest_node, new_node)
     
     @test calc_distance(nearest_node, extended_node) ≈ rrt.step_size
+    println(extended_node)
+    println(nearest_node)
 end
 
 @testset "RRT-IsNearTheGoal" begin
@@ -92,7 +105,7 @@ end
     start = SA[1.0, 1.0]
     goal = SA[4.0, 4.0]
 
-    rrt = RRT(start, goal, low, high; step_size=0.3, max_iter=5000)
+    rrt = RRT(start, goal, low, high; step_size=0.3, max_iter=100)
     path = plan(rrt)
     @test length(path) > 0
 
