@@ -27,7 +27,7 @@ function RRT(
     goal::SVector{N,Float64},
     low::SVector{N,Float64},
     high::SVector{N,Float64};
-    goal_sample_rate::Float64 = 0.1,
+    goal_sample_rate::Float64 = 0.2,
     step_size::Union{Float64,Nothing} = nothing,
     max_iter::Int64 = 500
 ) where {N}
