@@ -25,3 +25,18 @@ end
     @test_throws DomainError RRT(SA[-1.0, -1.0], goal, low, high)
     @test_throws DomainError RRT(start, SA[-1.0, -1.0], low, high)
 end
+
+@testset "RRT-Plan" begin
+    low = SA[0.0, 0.0]
+    high = SA[5.0, 5.0]
+
+    start = SA[1.0, 1.0]
+    goal = SA[4.0, 4.0]
+
+    rrt = RRT(start, goal, low, high; step_size=0.5, max_iter=10000)
+
+    @test all([all(low .<= sample(rrt).position .<= high) for _ in 1:100])
+    
+    path = plan(rrt)
+    @test length(path) > 0
+end
