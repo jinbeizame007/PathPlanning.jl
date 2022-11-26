@@ -57,6 +57,19 @@ end
     @test nearest_node == nodes[1]
 end
 
+@testset "RRT-GetExtendedNode" begin
+    rrt = get_default_rrt()
+    rrt.nodes = [rrt.start]
+
+    new_node = Node(SA[2.0, 2.0])
+    nearest_node_index = get_nearest_node_index(rrt, new_node)
+    nearest_node = rrt.nodes[nearest_node_index]
+
+    extended_node = get_extended_node(rrt, nearest_node, new_node)
+    
+    @test calc_distance(nearest_node, extended_node) ≈ rrt.step_size
+end
+
 @testset "RRT-Plan" begin
     low = SA[0.0, 0.0]
     high = SA[5.0, 5.0]

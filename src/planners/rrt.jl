@@ -63,7 +63,7 @@ function get_extended_node(rrt::RRT{N}, nearest_node::Node{N}, new_node::Node{N}
     delta = nearest_node.position - new_node.position
     distance = calc_distance(nearest_node, new_node)
     
-    position = delta * (rrt.step_size / distance)
+    position = nearest_node.position + delta * (rrt.step_size / distance)
     extended_node = Node(position)
     return extended_node
 end
