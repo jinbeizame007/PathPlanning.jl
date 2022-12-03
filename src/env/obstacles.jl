@@ -46,3 +46,18 @@ function is_inside(
     distance = sum((obs.center - position).^2.0)^0.5
     return distance <= obs.radius
 end
+
+function create_example_2D_env()::Env
+    obstacles = [
+        RectObstacle(SA[18.0, 13.0], SA[8.0, 2.0]),
+        RectObstacle(SA[22.0, 23.5], SA[8.0, 3.0]),
+        RectObstacle(SA[27.0, 13.0], SA[2.0, 12.0]),
+        RectObstacle(SA[37.0, 15.0], SA[10.0, 2.0]),
+        CircleObstacle(SA[7.0, 12.0], 3.0),
+        CircleObstacle(SA[46.0, 20.0], 2.0),
+        CircleObstacle(SA[15.0, 5.0], 2.0),
+        CircleObstacle(SA[37.0, 7.0], 3.0),
+        CircleObstacle(SA[37.0, 23.0], 3.0),
+    ]
+    return Env(obstacles)
+end
