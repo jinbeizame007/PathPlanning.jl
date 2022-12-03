@@ -120,9 +120,9 @@ using StaticArrays
 
     @testset "RRT-With-Env" begin
         low = SA[0.0, 0.0]
-        high = SA[5.0, 5.0]
+        high = SA[50.0, 30.0]
         start = SA[1.0, 1.0]
-        goal = SA[4.0, 4.0]
+        goal = SA[48.0, 25.0]
 
         env = create_example_2D_env()
         function is_approved(position::SVector{2,Float64})
