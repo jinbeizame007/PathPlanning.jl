@@ -3,7 +3,7 @@ module Env
 using StaticArrays
 
 # from obstacles.jl
-export RectObstacle, is_inside
+export RectObstacle, CircleObstacle, is_inside
 
 include("obstacles.jl")
 
