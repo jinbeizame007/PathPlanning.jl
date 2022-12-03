@@ -2,8 +2,8 @@
 
 ```@contents
 Pages = [
-        "planners/rrt.md",
-        "envs/env.md",
+        "planners/planners.md",
+        "envs/envs.md",
 ]
 Depth = 3
 ```
