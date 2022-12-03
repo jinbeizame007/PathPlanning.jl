@@ -1,4 +1,4 @@
-using PathPlanning.Env
+using PathPlanning.Envs
 using StaticArrays
 
 @testset "Obstacle" begin
