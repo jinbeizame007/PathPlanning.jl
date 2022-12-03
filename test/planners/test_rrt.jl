@@ -1,4 +1,5 @@
 using PathPlanning.Planners
+using PathPlanning.Envs
 using StaticArrays
 
 @testset "RRT" begin
@@ -115,5 +116,21 @@ using StaticArrays
 
         tol = 1e-8
         @test all([calc_distance(path[i], path[i+1]) <= rrt.step_size + tol for i in 1:length(path)-1])
+    end
+
+    @testset "RRT-With-Env" begin
+        low = SA[0.0, 0.0]
+        high = SA[5.0, 5.0]
+        start = SA[1.0, 1.0]
+        goal = SA[4.0, 4.0]
+
+        env = create_example_2D_env()
+        function is_approved(position::SVector{2,Float64})
+            return !is_inside_any_obstacle(env, position)
+        end
+
+        rrt = RRT(start, goal, low, high; step_size=1.0, max_iter=500, is_approved=is_approved)
+        path = plan(rrt)
+        @test all([!is_inside_any_obstacle(env, node.position) for node in path])
     end
 end
