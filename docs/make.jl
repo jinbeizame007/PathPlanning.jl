@@ -7,6 +7,9 @@ makedocs(;
         "Planners"=>[
             "RRT" => "planners/rrt.md",
         ],
+        "Envs"=>[
+            "Env" => "envs/env.md",
+        ],
     ]
 )
 deploydocs(
