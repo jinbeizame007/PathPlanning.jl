@@ -9,3 +9,7 @@ makedocs(;
         ],
     ]
 )
+deploydocs(
+    repo = "github.com/jinbeizame007/PathPlanning.jl.git";
+    push_preview = true
+)
