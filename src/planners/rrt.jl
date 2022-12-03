@@ -49,6 +49,7 @@ A planner using RRT.
 - `goal_sample_rate::Float64`: rate of sampling the goal node
 - `step_size::Float64`: maximum distance between each node
 - `max_iter::Int64`: maximum the number of the iterations
+- `is_approved::Union{Function, Nothing}`: a function that returns if the node can be added the graph
 """
 mutable struct RRT{N}
     start::Node{N}
@@ -59,6 +60,7 @@ mutable struct RRT{N}
     goal_sample_rate::Float64
     step_size::Float64
     max_iter::Int64
+    is_approved::Union{Function, Nothing}
 end
 
 """
@@ -69,7 +71,8 @@ end
         high::SVector{N,Float64};
         goal_sample_rate::Float64 = 0.2,
         step_size::Union{Float64,Nothing} = nothing,
-        max_iter::Int64 = 500
+        max_iter::Int64 = 500,
+        is_approved::Union{Function, Nothing} = nothing,
     ) where {N}
 
 Constructor of RRT struct.
@@ -83,6 +86,7 @@ The `step_size` is initiated as 1/20th of the distance between the start node an
 - `goal_sample_rate::Float64`: rate of sampling the goal node
 - `step_size::Float64`: maximum distance between each node
 - `max_iter::Int64`: maximum the number of the iterations
+- `is_approved::Union{Function, Nothing}`: a function that returns if the node can be added the graph
 """
 function RRT(
     start::SVector{N,Float64},
@@ -91,7 +95,8 @@ function RRT(
     high::SVector{N,Float64};
     goal_sample_rate::Float64 = 0.2,
     step_size::Union{Float64,Nothing} = nothing,
-    max_iter::Int64 = 500
+    max_iter::Int64 = 500,
+    is_approved::Union{Function, Nothing} = nothing,
 )::RRT{N} where {N}
     if any(high .<= low)
         throw(DomainError((low, high), "The `low` ($low) should be lower than `high` ($high)."))
@@ -110,7 +115,7 @@ function RRT(
         step_size = sum((goal - start).^2.0)^0.5 / 20.0
     end
 
-    return RRT{N}(Node(start), Node(goal), low, high, nodes, goal_sample_rate, step_size, max_iter)
+    return RRT{N}(Node(start), Node(goal), low, high, nodes, goal_sample_rate, step_size, max_iter, is_approved)
 end
 
 """
@@ -220,6 +225,13 @@ function plan(rrt::RRT{N})::Vector{Node{N}} where {N}
         if rrt.step_size < distance_from_nearest_node
             new_node = get_extended_node(rrt, nearest_node, new_node)
         end
+
+        # Check if the node is approved (e.g., if the node is inside any obstacle.)
+        if !isnothing(rrt.is_approved) && !rrt.is_approved(new_node.position)
+            continue
+        end
+
+        # Add the new node to the graph
 
         new_node.parent = nearest_node_index
         push!(rrt.nodes, new_node)

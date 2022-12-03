@@ -5,7 +5,10 @@ makedocs(;
     pages = [
         "Index"=>"index.md",
         "Planners"=>[
-            "RRT" => "planners/rrt.md",
+            "Planners" => "planners/planners.md",
+        ],
+        "Envs"=>[
+            "Env" => "envs/envs.md",
         ],
     ]
 )

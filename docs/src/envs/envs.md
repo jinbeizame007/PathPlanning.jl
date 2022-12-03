@@ -1,6 +1,6 @@
-# RRT
+# Envs
 
 ```@autodocs
-Modules = [PathPlanning.Planners]
+Modules = [PathPlanning.Envs]
 Order   = [:function, :type]
 ```

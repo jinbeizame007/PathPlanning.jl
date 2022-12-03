@@ -1,5 +1,5 @@
 using Test
 
-@testset "PathPlanning.jl" begin
+@testset "Planners" begin
     include("test_rrt.jl")
 end
