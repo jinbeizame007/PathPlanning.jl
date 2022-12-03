@@ -1,0 +1,6 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+PathPlanning = "61bdd07c-9d8f-4376-87b7-d768bb2910e4"
+
+[compat]
+Documenter = "0.27"
