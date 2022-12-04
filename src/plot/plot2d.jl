@@ -1,3 +1,8 @@
+"""
+    plot_nodes!(axis::Axis, nodes::Vector{Node{2}})::Nothing
+
+Plot each nodes as small circles.
+"""
 function plot_nodes!(
     axis::Axis,
     nodes::Vector{Node{2}},
@@ -8,6 +13,13 @@ function plot_nodes!(
     return nothing
 end
 
+"""
+    plot_paths!(axis::Axis, nodes::Vector{Node{2}})::Nothing
+
+Plot all paths as line segments.
+If you input all nodes that the planner has, you can plot all paths that the planner explorated,
+If you input nodes in a path that the planner found, you can plot a path that the planner found.
+"""
 function plot_paths!(
     axis::Axis,
     nodes::Vector{Node{2}},
@@ -25,6 +37,11 @@ function plot_paths!(
     return nothing
 end
 
+"""
+    plot_obstacle!(axis::Axis, obstacle::RectObstacle{2})::Nothing
+
+Plot a RectObstacle.
+"""
 function plot_obstacle!(
     axis::Axis,
     obstacle::RectObstacle{2},
@@ -35,6 +52,11 @@ function plot_obstacle!(
     return nothing
 end
 
+"""
+    plot_obstacle!(axis::Axis, obstacle::CircleObstacle{2})::Nothing
+
+Plot a CircleObstacle.
+"""
 function plot_obstacle!(
     axis::Axis,
     obstacle::CircleObstacle{2},
@@ -43,6 +65,11 @@ function plot_obstacle!(
     return nothing
 end
 
+"""
+    plot_obstacles!(axis::Axis, obstacles::Vector{AbstractObstacle})::Nothing
+
+Plot obstacles that can include RectObstacles, CircleObstacles, or both.
+"""
 function plot_obstacles!(
     axis::Axis,
     obstacles::Vector{AbstractObstacle},
@@ -53,12 +80,18 @@ function plot_obstacles!(
     return nothing
 end
 
+"""
+    plot(
+        env::Env,
+        planner::AbstractPlanner{2};
+        resolution::Tuple{Int64,Int64}=(800,800),
+    )::Tuple{Figure, Axis}
+
+Plot nodes, paths, and obstacles that are in the env or the planner.
+"""
 function plot(
     env::Env,
     planner::AbstractPlanner{2};
-    title::Union{String,Nothing}=nothing,
-    xlabel::Union{String,Nothing}=nothing,
-    ylabel::Union{String,Nothing}=nothing,
     resolution::Tuple{Int64,Int64}=(800,800),
 )::Tuple{Figure, Axis}
     figure = Figure(backgroundcolor = :white; resolution = resolution)
