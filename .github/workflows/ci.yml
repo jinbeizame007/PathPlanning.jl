@@ -18,7 +18,6 @@ jobs:
       - run: |
           export DISPLAY=:99
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
-          mycommand
       - uses: actions/checkout@v1.0.0
       - uses: julia-actions/setup-julia@v1
         with:
