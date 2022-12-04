@@ -27,4 +27,5 @@ using StaticArrays
         @test_nowarn plot_obstacle!(axis, obstacle)
     end
     @test_nowarn plot_obstacles!(axis, env.obstacles)
+    @test_nowarn animate(env, rrt)
 end
