@@ -10,6 +10,9 @@ makedocs(;
         "Envs"=>[
             "Env" => "envs/envs.md",
         ],
+        "Plot"=>[
+            "Env" => "plot/plot.md",
+        ],
     ]
 )
 deploydocs(
