@@ -1,22 +1,51 @@
+"""
+    Env
+
+A Env object has all obstacles that are in the environment.
+
+# Fields
+- `num_obstacles::Int64`: the number of the obstacles
+- `obstacles::Vector{AbstractObstacle}`: obstacles that have a position and a size
+"""
 mutable struct Env
     num_obstacles::Int64
     obstacles::Vector{AbstractObstacle}
 end
 
-function Env()
+"""
+    Env()
+
+Constructor for Env with no obstacles.
+"""
+function Env()::Env
     return Env(0, Vector{AbstractObstacle}([]))
 end
 
-function Env(obstacles::Vector{AbstractObstacle})
+"""
+    Env(obstacles::Vector{AbstractObstacle})
+
+Constructor for Env with obstacles.
+"""
+function Env(obstacles::Vector{AbstractObstacle})::Env
     return Env(length(obstacles), obstacles)
 end
 
+"""
+    add_obstacle!(env::Env, obstacle::AbstractObstacle)
+
+Add a obstacle to Env object.
+"""
 function add_obstacle!(env::Env, obstacle::AbstractObstacle)
     env.num_obstacles += 1
     push!(env.obstacles, obstacle)
     return nothing
 end
 
+"""
+    is_inside_any_obstacle(env::Env, position::SVector{N,Float64})::Bool where {N}
+
+Return if the position is inside any obstacle in the Env.
+"""
 function is_inside_any_obstacle(
     env::Env,
     position::SVector{N,Float64}
@@ -24,6 +53,11 @@ function is_inside_any_obstacle(
     return any([is_inside(obstacle, position) for obstacle in env.obstacles])
 end
 
+"""
+    create_example_2D_env()::Env
+
+Return an example Env object that includes 4 RectObstacles and 5 CircleObstacles.
+"""
 function create_example_2D_env()::Env
     obstacles = [
         RectObstacle(SA[18.0, 13.0], SA[8.0, 2.0]),

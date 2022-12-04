@@ -1,5 +1,14 @@
 abstract type AbstractObstacle end
 
+"""
+    RectObstacle{N}
+
+A Rectangle-type Obstacle.
+
+# Fields
+- `center::SVector{N,Float64}`: center position of the rectangle-type obstacle.
+- `size::SVector{N,Float64}`: width of each side of the rectangle-type obstacle.
+"""
 struct RectObstacle{N} <: AbstractObstacle
     center::SVector{N,Float64}
     size::SVector{N,Float64}
@@ -16,6 +25,11 @@ struct RectObstacle{N} <: AbstractObstacle
     end
 end
 
+"""
+    is_inside(obs::RectObstacle{N}, position::SVector{N,Float64})::Bool where {N}
+
+Return if the `position` is inside the RectObstacle.
+"""
 function is_inside(
     obs::RectObstacle{N},
     position::SVector{N,Float64},
@@ -23,6 +37,15 @@ function is_inside(
     return all(obs.center - obs.size./2 .<= position .<= obs.center + obs.size./2)
 end
 
+"""
+    CircleObstacle{N}
+
+A Circle-type Obstacle.
+
+# Fields
+- `center::SVector{N,Float64}`: center position of the circle-type obstacle.
+- `radius::Float64`: radius of the circle-type obstacle.
+"""
 struct CircleObstacle{N} <: AbstractObstacle
     center::SVector{N,Float64}
     radius::Float64
@@ -39,6 +62,11 @@ struct CircleObstacle{N} <: AbstractObstacle
     end
 end
 
+"""
+    is_inside(obs::CircleObstacle{N},, position::SVector{N,Float64})::Bool where {N}
+
+Return if the `position` is inside the CircleObstacle.
+"""
 function is_inside(
     obs::CircleObstacle{N},
     position::SVector{N,Float64},
