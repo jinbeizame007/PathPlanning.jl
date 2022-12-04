@@ -15,6 +15,7 @@ jobs:
         arch:
           - x64
     steps:
+      - run: export DISPLAY=:0
       - uses: actions/checkout@v1.0.0
       - uses: julia-actions/setup-julia@v1
         with:
