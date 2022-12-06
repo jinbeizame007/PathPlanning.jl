@@ -35,6 +35,8 @@ function calc_distance(node1::Node{N}, node2::Node{N})::Float64 where {N}
     return sum((node1.position - node2.position).^2.0)^0.5
 end
 
+abstract type AbstractPlanner{N} end
+
 """
     RRT{N}
 
@@ -51,7 +53,7 @@ A planner using RRT.
 - `max_iter::Int64`: maximum the number of the iterations
 - `is_approved::Union{Function, Nothing}`: a function that returns if the node can be added the graph
 """
-mutable struct RRT{N}
+mutable struct RRT{N} <: AbstractPlanner{N}
     start::Node{N}
     goal::Node{N}
     low::SVector{N,Float64}

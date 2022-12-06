@@ -10,8 +10,7 @@ jobs:
         version:
           - '1.8'
         os:
-          - ubuntu-latest
-          - macOS-latest
+          - ubuntu-18.04
         arch:
           - x64
     steps:
@@ -20,10 +19,8 @@ jobs:
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
-      - uses: julia-actions/julia-buildpkg@latest
-      - uses: julia-actions/julia-runtest@latest
-        env:
-          STATICARRAYS_TEST_GROUP: ${{ matrix.group }}
+      - run: sudo apt-get update && sudo apt-get install -y xorg-dev mesa-utils xvfb libgl1 freeglut3-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev
+      - run: DISPLAY=:0 xvfb-run -s '-screen 0 1024x768x24' julia --project=@. -e 'using Pkg; Pkg.test(coverage=true)'
       - uses: julia-actions/julia-uploadcodecov@latest
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

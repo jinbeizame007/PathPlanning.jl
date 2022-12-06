@@ -4,6 +4,7 @@
 Pages = [
         "planners/planners.md",
         "envs/envs.md",
+        "plot/plot.md",
 ]
 Depth = 3
 ```
