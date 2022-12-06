@@ -15,9 +15,8 @@ jobs:
         arch:
           - x64
     steps:
-      - run: |
-          export DISPLAY=:99
-          sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
+      - run: sudo apt-get update && sudo apt-get install -y xorg-dev mesa-utils xvfb libgl1 freeglut3-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev
+      - run: DISPLAY=:0 xvfb-run -s '-screen 0 1024x768x24'
       - uses: actions/checkout@v1.0.0
       - uses: julia-actions/setup-julia@v1
         with:
