@@ -69,7 +69,7 @@ end
     plot(
         env::Env,
         planner::AbstractPlanner{2};
-        resolution::Tuple{Int64,Int64}=(800,800),
+        resolution::Tuple{Int64,Int64}=(1000,600),
     )::Tuple{Figure, Axis}
 
 Plot nodes, paths, and obstacles that are in the env or the planner.
@@ -77,7 +77,7 @@ Plot nodes, paths, and obstacles that are in the env or the planner.
 function plot(
     env::Env,
     planner::AbstractPlanner{2};
-    resolution::Tuple{Int64,Int64}=(800,800),
+    resolution::Tuple{Int64,Int64}=(1000,600),
 )::Tuple{Figure, Axis}
     figure = Figure(backgroundcolor = :white; resolution = resolution)
     axis = Axis(figure[1, 1])
@@ -92,7 +92,7 @@ end
     animate(
         env::Env,
         planner::AbstractPlanner{2};
-        resolution::Tuple{Int64,Int64}=(800,800),
+        resolution::Tuple{Int64,Int64}=(1000,600),
         framerate::Int64=30,
         file_name::String="path.mp4"
     )::Nothing
@@ -102,7 +102,7 @@ Create a movie that shows the planning process.
 function animate(
     env::Env,
     planner::AbstractPlanner{2};
-    resolution::Tuple{Int64,Int64}=(800,800),
+    resolution::Tuple{Int64,Int64}=(1000,600),
     framerate::Int64=30,
     file_name::String="path.mp4"
 )::Nothing
