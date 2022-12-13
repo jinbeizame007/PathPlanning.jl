@@ -117,16 +117,44 @@ function animate(
     num_frames = length(planner.nodes)
     frame_indices = 2:num_frames
 
+    x_nodes = Vector{Float64}([])
+    y_nodes = Vector{Float64}([])
+    x_lines = Vector{Vector{Float64}}([])
+    y_lines = Vector{Vector{Float64}}([])
+    is_goaled = false
     record(figure, file_name, frame_indices; framerate=framerate) do frame_index
         node = planner.nodes[frame_index]
         parent_node = planner.nodes[node.parent]
-        scatter!(axis, [node.position[1]], [node.position[2]]; color=:dodgerblue)
-        linesegments!(
-            axis,
-            [parent_node.position[1], node.position[1]],
-            [parent_node.position[2], node.position[2]];
-            color=:dodgerblue
-        )
+        push!(x_nodes, node.position[1])
+        push!(y_nodes, node.position[2])
+        push!(x_lines, [parent_node.position[1], node.position[1]])
+        push!(y_lines, [parent_node.position[2], node.position[2]])
+
+        # Plot all nodes and lines
+        scatter!(axis, x_nodes, y_nodes; color=:dodgerblue)
+        linesegments!(axis, vcat(x_lines...), vcat(y_lines...); color=:dodgerblue)
+
+        if !is_goaled && all(node.position .== planner.goal.position)
+            is_goaled = true
+        end
+
+        x_nodes_path = Vector{Float64}([])
+        y_nodes_path = Vector{Float64}([])
+        x_lines_path = Vector{Vector{Float64}}([])
+        y_lines_path = Vector{Vector{Float64}}([])
+        if is_goaled
+            path = extract_path(planner)
+            x_nodes_path = [node.position[1] for node in path]
+            y_nodes_path = [node.position[2] for node in path]
+            for i in 1:length(path)-1
+                push!(x_lines_path, [x_nodes_path[i], x_nodes_path[i+1]])
+                push!(y_lines_path, [y_nodes_path[i], y_nodes_path[i+1]])
+            end
+
+            # Plot nodes and lines on the path
+            scatter!(axis, x_nodes_path, y_nodes_path; color=:violetred2)
+            linesegments!(axis, vcat(x_lines_path...), vcat(y_lines_path...); color=:violetred2)
+        end
     end
 
     return nothing
