@@ -1,23 +1,20 @@
 """
-    plot_nodes!(axis::Axis, nodes::Vector{Node{2}})::Nothing
+    plot_nodes!(axis::Axis, nodes::Vector{Node{2}})::Scatter
 
 Plot each nodes as small circles.
 """
-function plot_nodes!(axis::Axis, nodes::Vector{Node{2}})::Nothing
+function plot_nodes!(axis::Axis, nodes::Vector{Node{2}}; color::Symbol=:dodgerblue)::Scatter
     x = [node.position[1] for node in nodes]
     y = [node.position[2] for node in nodes]
-    scatter!(axis, x, y)
-    return nothing
+    return scatter!(axis, x, y; color=color)
 end
 
 """
-    plot_paths!(axis::Axis, nodes::Vector{Node{2}})::Nothing
+    plot_lines!(axis::Axis, nodes::Vector{Node{2}})::LineSegments
 
-Plot all paths as line segments.
-If you input all nodes that the planner has, you can plot all paths that the planner explorated,
-If you input nodes in a path that the planner found, you can plot a path that the planner found.
+Plot all lines on the graph as line segments.
 """
-function plot_paths!(axis::Axis, nodes::Vector{Node{2}})::Nothing
+function plot_lines!(axis::Axis, nodes::Vector{Node{2}}; color::Symbol=:dodgerblue)::LineSegments
     x = Vector{Float64}([])
     y = Vector{Float64}([])
     for node in nodes[2:end]
@@ -27,8 +24,24 @@ function plot_paths!(axis::Axis, nodes::Vector{Node{2}})::Nothing
         push!(x, node.position[1])
         push!(y, node.position[2])
     end
-    linesegments!(axis, x, y)
-    return nothing
+    return linesegments!(axis, x, y; color=color)
+end
+
+"""
+    plot_path!(axis::Axis, nodes::Vector{Node{2}}; color::Symbol=:dodgerblue)::LineSegments
+
+Plot a path that a planner found as line segments.
+"""
+function plot_path!(axis::Axis, nodes::Vector{Node{2}}; color::Symbol=:dodgerblue)::LineSegments
+    x = Vector{Float64}([])
+    y = Vector{Float64}([])
+    for i in 1:length(nodes)-1
+        push!(x, nodes[i].position[1])
+        push!(y, nodes[i].position[2])
+        push!(x, nodes[i+1].position[1])
+        push!(y, nodes[i+1].position[2])
+    end
+    return linesegments!(axis, x, y; color=color)
 end
 
 """
@@ -80,25 +93,14 @@ function plot(
     resolution::Tuple{Int64,Int64}=(1000,600),
 )::Tuple{Figure, Axis}
     figure = Figure(backgroundcolor = :white; resolution = resolution)
-    axis = Axis(figure[1, 1])
+    axis = Axis(figure[1, 1]; limits = (planner.low[1], planner.high[1], planner.low[2], planner.high[2]))
 
     plot_nodes!(axis, planner.nodes)
-    plot_paths!(axis, planner.nodes)
+    plot_lines!(axis, planner.nodes)
     plot_obstacles!(axis, env.obstacles)
     return figure, axis
 end
 
-"""
-    animate(
-        env::Env,
-        planner::AbstractPlanner{2};
-        resolution::Tuple{Int64,Int64}=(1000,600),
-        framerate::Int64=30,
-        file_name::String="path.mp4"
-    )::Nothing
-
-Create a movie that shows the planning process.
-"""
 function animate(
     env::Env,
     planner::AbstractPlanner{2};
@@ -107,53 +109,38 @@ function animate(
     file_name::String="path.mp4"
 )::Nothing
     figure = Figure(backgroundcolor = :white; resolution = resolution)
-    axis = Axis(figure[1, 1])
+    axis = Axis(figure[1, 1]; limits = (planner.low[1], planner.high[1], planner.low[2], planner.high[2]))
     plot_obstacles!(axis, env.obstacles)
 
     # Plot start and goal node
     scatter!(axis, [planner.start.position[1]], [planner.start.position[2]])
     scatter!(axis, [planner.goal.position[1]], [planner.goal.position[2]])
 
-    num_frames = length(planner.nodes)
-    frame_indices = 2:num_frames
+    num_frames = length(planner.logs)
+    frame_indices = 1:num_frames
 
-    x_nodes = Vector{Float64}([])
-    y_nodes = Vector{Float64}([])
-    x_lines = Vector{Vector{Float64}}([])
-    y_lines = Vector{Vector{Float64}}([])
-    is_goaled = false
+    plotted_objects = []
     record(figure, file_name, frame_indices; framerate=framerate) do frame_index
-        node = planner.nodes[frame_index]
-        parent_node = planner.nodes[node.parent]
-        push!(x_nodes, node.position[1])
-        push!(y_nodes, node.position[2])
-        push!(x_lines, [parent_node.position[1], node.position[1]])
-        push!(y_lines, [parent_node.position[2], node.position[2]])
-
-        # Plot all nodes and lines
-        scatter!(axis, x_nodes, y_nodes; color=:dodgerblue)
-        linesegments!(axis, vcat(x_lines...), vcat(y_lines...); color=:dodgerblue)
-
-        if !is_goaled && all(node.position .== planner.goal.position)
-            is_goaled = true
+        # At frame_index == 1, the movie shows only the start and goal node.
+        if frame_index == 1
+            return
         end
 
-        x_nodes_path = Vector{Float64}([])
-        y_nodes_path = Vector{Float64}([])
-        x_lines_path = Vector{Vector{Float64}}([])
-        y_lines_path = Vector{Vector{Float64}}([])
-        if is_goaled
-            path = extract_path(planner)
-            x_nodes_path = [node.position[1] for node in path]
-            y_nodes_path = [node.position[2] for node in path]
-            for i in 1:length(path)-1
-                push!(x_lines_path, [x_nodes_path[i], x_nodes_path[i+1]])
-                push!(y_lines_path, [y_nodes_path[i], y_nodes_path[i+1]])
-            end
+        # Delete nodes and lines on the previous frame
+        while length(plotted_objects) > 0
+            delete!(axis, plotted_objects[end])
+            pop!(plotted_objects)
+        end
 
-            # Plot nodes and lines on the path
-            scatter!(axis, x_nodes_path, y_nodes_path; color=:violetred2)
-            linesegments!(axis, vcat(x_lines_path...), vcat(y_lines_path...); color=:violetred2)
+        log = planner.logs[frame_index]
+        nodes = log["planner"].nodes
+
+        push!(plotted_objects, plot_nodes!(axis, nodes; color=:dodgerblue))
+        push!(plotted_objects, plot_lines!(axis, nodes; color=:dodgerblue))
+        if log["is_goaled"]
+            path = extract_path(log["planner"])
+            push!(plotted_objects, plot_nodes!(axis, path; color=:violetred2))
+            push!(plotted_objects, plot_path!(axis, path; color=:violetred2))
         end
     end
 
