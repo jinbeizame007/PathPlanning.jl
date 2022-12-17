@@ -1,3 +1,4 @@
+using Test
 using PathPlanning.Planners
 using PathPlanning.Envs
 using StaticArrays
@@ -129,7 +130,7 @@ using StaticArrays
             return !is_inside_any_obstacle(env, position)
         end
 
-        rrt = RRT(start, goal, low, high; step_size=1.0, max_iter=1000, is_approved=is_approved)
+        rrt = RRT(start, goal, low, high; step_size=2.0, max_iter=1000, is_approved=is_approved, enable_logging=true)
         path = plan(rrt)
         @test length(path) > 0
         @test all(path[1].position .== start)
