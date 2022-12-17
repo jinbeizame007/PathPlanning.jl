@@ -40,6 +40,7 @@ end
         step_size::Union{Float64,Nothing} = nothing,
         max_iter::Int64 = 500,
         is_approved::Union{Function, Nothing} = nothing,
+        enable_logging::Bool = false
     ) where {N}
 
 Constructor of RRTStar struct.
