@@ -10,15 +10,15 @@ using StaticArrays
         start = SA[1.0, 1.0]
         goal = SA[4.0, 4.0]
 
-        rrt = RRTStar(start, goal, low, high; step_size=0.3, max_iter=100)
-        path = plan(rrt)
+        rrt_star = RRTStar(start, goal, low, high; step_size=0.3, max_iter=100)
+        path = plan(rrt_star)
         @test length(path) > 0
 
-        @test all(path[1] == rrt.start)
-        @test all(path[end] == rrt.goal)
+        @test all(path[1] == rrt_star.start)
+        @test all(path[end] == rrt_star.goal)
 
         tol = 1e-8
-        @test all([calc_distance(path[i], path[i+1]) <= rrt.step_size + tol for i in 1:length(path)-1])
+        @test all([calc_distance(path[i], path[i+1]) <= rrt_star.step_size + tol for i in 1:length(path)-1])
     end
 
     @testset "RRTStar-With-Env" begin
@@ -32,8 +32,8 @@ using StaticArrays
             return !is_inside_any_obstacle(env, position)
         end
 
-        rrt = RRTStar(start, goal, low, high; goal_sample_rate=0.05, step_size=1.0, max_iter=1000, is_approved=is_approved)
-        path = plan(rrt)
+        rrt_star = RRTStar(start, goal, low, high; goal_sample_rate=0.02, step_size=2.0, max_iter=2000, is_approved=is_approved, enable_logging=true)
+        path = plan(rrt_star)
         @test length(path) > 0
         @test all(path[1].position .== start)
         @test all(path[end].position .== goal)
