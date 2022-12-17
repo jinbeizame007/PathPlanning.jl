@@ -58,6 +58,8 @@ A planner using RRT.
 - `step_size::Float64`: maximum distance between each node
 - `max_iter::Int64`: maximum the number of the iterations
 - `is_approved::Union{Function, Nothing}`: a function that returns if the node can be added the graph
+- `enable_logging::Bool`: whether to log (is_goaled, RRTStar instance) for each steps in planning
+- `logs::Vector{Dict{String, Any}}`: (is_goaled, RRT instance) for each steps in planning
 """
 mutable struct RRT{N} <: AbstractRRT{N}
     start::Node{N}
@@ -69,6 +71,8 @@ mutable struct RRT{N} <: AbstractRRT{N}
     step_size::Float64
     max_iter::Int64
     is_approved::Union{Function, Nothing}
+    enable_logging::Bool
+    logs::Vector{Dict{String, Any}}
 end
 
 """
@@ -81,6 +85,7 @@ end
         step_size::Union{Float64,Nothing} = nothing,
         max_iter::Int64 = 500,
         is_approved::Union{Function, Nothing} = nothing,
+        enable_logging::Bool = false
     ) where {N}
 
 Constructor of RRT struct.
@@ -95,6 +100,7 @@ The `step_size` is initiated as 1/20th of the distance between the start node an
 - `step_size::Float64`: maximum distance between each node
 - `max_iter::Int64`: maximum the number of the iterations
 - `is_approved::Union{Function, Nothing}`: a function that returns if the node can be added the graph
+- `enable_logging::Bool`: whether to log (is_goaled, RRTStar instance) for each steps in planning
 """
 function RRT(
     start::SVector{N,Float64},
@@ -105,6 +111,7 @@ function RRT(
     step_size::Union{Float64,Nothing} = nothing,
     max_iter::Int64 = 500,
     is_approved::Union{Function, Nothing} = nothing,
+    enable_logging::Bool = false
 )::RRT{N} where {N}
     if any(high .<= low)
         throw(DomainError((low, high), "The `low` ($low) should be lower than `high` ($high)."))
@@ -123,7 +130,8 @@ function RRT(
         step_size = sum((goal - start).^2.0)^0.5 / 20.0
     end
 
-    return RRT{N}(Node(start), Node(goal), low, high, nodes, goal_sample_rate, step_size, max_iter, is_approved)
+    logs = Vector{Dict{String, Any}}([])
+    return RRT{N}(Node(start), Node(goal), low, high, nodes, goal_sample_rate, step_size, max_iter, is_approved, enable_logging, logs)
 end
 
 """
@@ -217,6 +225,13 @@ Find and return a path from the start node `rrt.start` to the goal node `rrt.goa
 function plan(rrt::RRT{N})::Vector{Node{N}} where {N}
     rrt.nodes = [rrt.start]
 
+    is_goaled = false
+    logs = Vector{Dict{String, Any}}([])
+    if rrt.enable_logging
+        log = Dict("is_goaled" => is_goaled, "planner" => deepcopy(rrt))
+        push!(logs, log)
+    end
+
     for i in 1:rrt.max_iter
         # Sample a node
         new_node = if rand() < rrt.goal_sample_rate
@@ -240,18 +255,28 @@ function plan(rrt::RRT{N})::Vector{Node{N}} where {N}
         end
 
         # Add the new node to the graph
-
         new_node.parent = nearest_node_index
         push!(rrt.nodes, new_node)
 
         if is_near_the_goal(rrt, new_node)
             new_node_index = length(rrt.nodes)
             rrt.goal.parent = new_node_index
+            push!(rrt.nodes, rrt.goal)
+            is_goaled = true
+        end
 
+        if rrt.enable_logging
+            log = Dict("is_goaled" => is_goaled, "planner" => deepcopy(rrt))
+            push!(logs, log)
+        end
+
+        if is_goaled
+            rrt.logs = logs
             path = extract_path(rrt)
             return path
         end
     end
 
+    rrt.logs = logs
     return Vector{Node{N}}([])
 end
