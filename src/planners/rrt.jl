@@ -10,6 +10,7 @@ Node configures a graph.
 mutable struct Node{N}
     position::SVector{N, Float64}
     parent::Union{Int64, Nothing}
+    cost::Float64
 end
 
 """
@@ -23,7 +24,11 @@ The index of the parent node is initiated as nothing.
 - `position::SVector{N, Float64}`: position of the node in the search space
 """
 function Node(position::SVector{N, Float64})::Node{N} where {N}
-    return Node{N}(position, nothing)
+    return Node{N}(position, nothing, 0.0)
+end
+
+function Node(position::SVector{N, Float64}, cost::Float64)::Node{N} where {N}
+    return Node{N}(position, nothing, cost)
 end
 
 """
@@ -36,6 +41,7 @@ function calc_distance(node1::Node{N}, node2::Node{N})::Float64 where {N}
 end
 
 abstract type AbstractPlanner{N} end
+abstract type AbstractRRT{N} <: AbstractPlanner{N} end
 
 """
     RRT{N}
@@ -53,7 +59,7 @@ A planner using RRT.
 - `max_iter::Int64`: maximum the number of the iterations
 - `is_approved::Union{Function, Nothing}`: a function that returns if the node can be added the graph
 """
-mutable struct RRT{N} <: AbstractPlanner{N}
+mutable struct RRT{N} <: AbstractRRT{N}
     start::Node{N}
     goal::Node{N}
     low::SVector{N,Float64}
@@ -121,20 +127,20 @@ function RRT(
 end
 
 """
-    sample(rrt::RRT{N})::Node{N} where {N}
+    sample(rrt::AbstractRRT{N})::Node{N} where {N}
 
 Sample a node from the search space.
 """
-function sample(rrt::RRT{N})::Node{N} where {N}
+function sample(rrt::AbstractRRT{N})::Node{N} where {N}
     return Node((@SVector rand(N)) .* (rrt.high - rrt.low) - rrt.low)
 end
 
 """
-    get_nearest_node_index(rrt::RRT{N}, new_node::Node{N})::Int64 where {N}
+    get_nearest_node_index(rrt::AbstractRRT{N}, new_node::Node{N})::Int64 where {N}
 
 Return the index of the node nearest to the given node in the graph.
 """
-function get_nearest_node_index(rrt::RRT{N}, new_node::Node{N})::Int64 where {N}
+function get_nearest_node_index(rrt::AbstractRRT{N}, new_node::Node{N})::Int64 where {N}
     distances = [calc_distance(node, new_node) for node in rrt.nodes]
     _, index = findmin(distances)
     return index
@@ -146,11 +152,11 @@ end
 Create and return a node at the position from the nearest node to the new node as close as by the step size.
 
 # Arguments
-- `rrt::RRT{N}`: a planner using RRT
+- `rrt::AbstractRRT{N}`: a planner using RRT based algorithm
 - `nearest_node::Node{N}`: the node nearest to the new node in the graph
 - `new_node::Node{N}`: the node newly sampled
 """
-function get_extended_node(rrt::RRT{N}, nearest_node::Node{N}, new_node::Node{N})::Node{N} where {N}
+function get_extended_node(rrt::AbstractRRT{N}, nearest_node::Node{N}, new_node::Node{N})::Node{N} where {N}
     delta = new_node.position - nearest_node.position
     distance = calc_distance(nearest_node, new_node)
     
@@ -160,28 +166,28 @@ function get_extended_node(rrt::RRT{N}, nearest_node::Node{N}, new_node::Node{N}
 end
 
 """
-    is_near_the_goal(rrt::RRT{N}, node::Node{N}) where {N}
+    is_near_the_goal(rrt::AbstractRRT{N}, node::Node{N}) where {N}
 
 Return if given node is near the goal (distance from goal is smaller than the `rrt.step_size`.)
 
 # Arguments
-- `rrt::RRT{N}`: a planner using RRT
+- `rrt::AbstractRRT{N}`: a planner using RRT based algorithm
 - `node::Node{N}`: a node in the search space
 """
-function is_near_the_goal(rrt::RRT{N}, node::Node{N}) where {N}
+function is_near_the_goal(rrt::AbstractRRT{N}, node::Node{N}) where {N}
     distance_from_goal = calc_distance(rrt.goal, node)
     return distance_from_goal <= rrt.step_size
 end
 
 """
-    extract_path(rrt::RRT{N}) where N
+    extract_path(rrt::AbstractRRT{N}) where N
 
 Return a path from start node to goal node by extracting nodes.
 
 # Arguments
-- rrt::RRT{N}: a planner using RRT
+- rrt::AbstractRRT{N}: a planner using RRT based algorithm
 """
-function extract_path(rrt::RRT{N}) where N
+function extract_path(rrt::AbstractRRT{N}) where N
     path = Vector{Node{N}}([])
 
     node = rrt.goal
