@@ -81,10 +81,20 @@ function RRTStar(
     return RRTStar{N}(Node(start), Node(goal), low, high, nodes, goal_sample_rate, step_size, max_iter, is_approved)
 end
 
+"""
+    get_near_node_indices(rrt::RRTStar{N}, new_node::Node{N}, distance::Float64)::Vector{Int64} where {N}
+
+Get nodes within `distance` from the `new_node`.
+"""
 function get_near_node_indices(rrt::RRTStar{N}, new_node::Node{N}, distance::Float64)::Vector{Int64} where {N}
     return Vector{Int64}([i for i in 1:length(rrt.nodes) if calc_distance(rrt.nodes[i], new_node) <= distance])
 end
 
+"""
+    rewire_near_nodes!(rrt_star::RRTStar{N}, near_node_indices::Vector{Int64}, new_node_index::Int64) where {N}
+
+Change parent nodes to the new node if the new cost is smaller than the current cost.
+"""
 function rewire_near_nodes!(rrt_star::RRTStar{N}, near_node_indices::Vector{Int64}, new_node_index::Int64) where {N}
     new_node = rrt_star.nodes[new_node_index]
     for near_node_index in near_node_indices
@@ -101,12 +111,12 @@ function rewire_near_nodes!(rrt_star::RRTStar{N}, near_node_indices::Vector{Int6
 end
 
 """
-    plan(rrt::RRT{N})::Vector{Node{N}} where {N}
+    plan(rrt_star::RRTStar{N})::Vector{Node{N}} where {N}
 
-Find and return a path from the start node `rrt.start` to the goal node `rrt.goal` with RRT algorithm.
+Find and return a path from the start node `rrt_star.start` to the goal node `rrt_star.goal` with RRT* algorithm.
 
 # Arguments
-- rrt::RRT{N}: a planner using RRT
+- rrt_star::RRTStar{N}: a planner using RRT*
 
 # Returns
 - `path::Vector{Node{N}}`: path (sequence of nodes) from the start node `rrt.start` to the goal node `rrt.goal`
