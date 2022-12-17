@@ -15,14 +15,15 @@ using StaticArrays
         return !is_inside_any_obstacle(env, position)
     end
 
-    rrt = RRT(start, goal, low, high; step_size=1.0, max_iter=1000, is_approved=is_approved)
+    rrt = RRT(start, goal, low, high; step_size=1.0, max_iter=1000, is_approved=is_approved, enable_logging=true)
     path = plan(rrt)
 
     @test_nowarn plot(env, rrt)
 
     figure, axis = plot(env, rrt)
     @test_nowarn plot_nodes!(axis, rrt.nodes)
-    @test_nowarn plot_paths!(axis, rrt.nodes)
+    @test_nowarn plot_lines!(axis, rrt.nodes)
+    @test_nowarn plot_path!(axis, path)
     for obstacle in env.obstacles
         @test_nowarn plot_obstacle!(axis, obstacle)
     end
