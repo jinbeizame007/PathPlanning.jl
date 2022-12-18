@@ -49,5 +49,8 @@ plot(env, rrt)
 ## RRT
 https://user-images.githubusercontent.com/16977484/208250130-c7edf1b8-8a0c-4288-a524-b939eeaf6e39.mp4
 
+## RRT-Connect
+https://user-images.githubusercontent.com/16977484/208293176-51a4fe1f-3628-4933-82a4-291e9f5bf78f.mp4
+
 ## RRT*
 https://user-images.githubusercontent.com/16977484/208250144-56b4238a-b468-467e-af81-bf964e7254c1.mp4
