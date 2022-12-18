@@ -195,21 +195,43 @@ function plan(planner::RRTConnect{N})::Vector{Node{N}} where {N}
         push!(sample_target_nodes, new_node)
         new_node_index = length(sample_target_nodes)
 
-        # Get the nearest node in extended_target_nodes
-        nearest_node_index = get_nearest_node_index(extend_target_nodes, new_node)
-        nearest_node = extend_target_nodes[nearest_node_index]
+        path = Vector{Node{N}}([])
+        while true
+            # Get the nearest node in extended_target_nodes
+            nearest_node_index = get_nearest_node_index(extend_target_nodes, new_node)
+            nearest_node = extend_target_nodes[nearest_node_index]
 
-        is_goaled = calc_distance(new_node, nearest_node) <= planner.step_size
-        if is_goaled
-            # Combine path from start and path from goal
-            end_node_index_from_start = is_sampled_for_start_tree ? new_node_index : nearest_node_index
-            end_node_index_from_goal = is_sampled_for_start_tree ? nearest_node_index : new_node_index
-            
-            path_from_start = extract_path(sample_target_nodes, end_node_index_from_start)
-            path_from_goal = extract_path(extend_target_nodes, end_node_index_from_goal)
-            path_to_goal = reverse_path(path_from_goal, end_node_index_from_goal)
-            path_to_goal[1].parent = end_node_index_from_start
-            path = vcat(path_from_start, path_to_goal)
+            is_goaled = calc_distance(new_node, nearest_node) <= planner.step_size
+            if is_goaled
+                # Combine path from start and path from goal
+                end_node_index_from_start = is_sampled_for_start_tree ? new_node_index : nearest_node_index
+                end_node_index_from_goal = is_sampled_for_start_tree ? nearest_node_index : new_node_index
+                
+                path_from_start = extract_path(planner.nodes_from_start, end_node_index_from_start)
+                path_from_goal = extract_path(planner.nodes_from_goal, end_node_index_from_goal)
+                path_to_goal = reverse_path(path_from_goal, end_node_index_from_goal)
+                path_to_goal[1].parent = end_node_index_from_start
+                path = vcat(path_from_start, path_to_goal)
+                break
+            else
+                extended_node = get_extended_node(planner, new_node, nearest_node)
+                if !isnothing(planner.is_approved) && !planner.is_approved(extended_node.position)
+                    break
+                end
+
+                if planner.enable_logging
+                    planner_copy = deepcopy(planner)
+                    planner_copy.nodes = get_all_nodes(planner_copy)
+                    log = Dict("is_goaled" => is_goaled, "planner" => planner_copy)
+                    push!(logs, log)
+                end
+
+                # Add the new node to the graph
+                extended_node.parent = new_node_index
+                push!(sample_target_nodes, extended_node)
+                new_node = extended_node
+                new_node_index = length(sample_target_nodes)
+            end
         end
 
         if planner.enable_logging
