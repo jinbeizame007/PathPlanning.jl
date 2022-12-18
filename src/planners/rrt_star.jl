@@ -174,7 +174,7 @@ function plan(rrt_star::RRTStar{N})::Vector{Node{N}} where {N}
         end
 
         # Get the nearest node
-        nearest_node_index = get_nearest_node_index(rrt_star, new_node)
+        nearest_node_index = get_nearest_node_index(rrt_star.nodes, new_node)
         nearest_node = rrt_star.nodes[nearest_node_index]
 
         # Get a node extended from the nearest node

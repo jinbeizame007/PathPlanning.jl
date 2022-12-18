@@ -101,6 +101,17 @@ function plot(
     return figure, axis
 end
 
+"""
+    animate(
+        env::Env,
+        planner::AbstractPlanner{2};
+        resolution::Tuple{Int64,Int64}=(1000,600),
+        framerate::Int64=30,
+        file_name::String="path.mp4"
+    )::Nothing
+
+Create a movie that shows the processes of planning.
+"""
 function animate(
     env::Env,
     planner::AbstractPlanner{2};
@@ -139,6 +150,66 @@ function animate(
         push!(plotted_objects, plot_lines!(axis, nodes; color=:dodgerblue))
         if log["is_goaled"]
             path = extract_path(log["planner"])
+            push!(plotted_objects, plot_nodes!(axis, path; color=:violetred2))
+            push!(plotted_objects, plot_path!(axis, path; color=:violetred2))
+        end
+    end
+
+    return nothing
+end
+
+"""
+    animate(
+        env::Env,
+        planner::AbstractPlanner{2};
+        resolution::Tuple{Int64,Int64}=(1000,600),
+        framerate::Int64=30,
+        file_name::String="path.mp4"
+    )::Nothing
+
+Create a movie that shows the processes of planning only for RRT-Connect.
+"""
+function animate(
+    env::Env,
+    planner::RRTConnect{2};
+    resolution::Tuple{Int64,Int64}=(1000,600),
+    framerate::Int64=30,
+    file_name::String="path.mp4"
+)::Nothing
+    figure = Figure(backgroundcolor = :white; resolution = resolution)
+    axis = Axis(figure[1, 1]; limits = (planner.low[1], planner.high[1], planner.low[2], planner.high[2]))
+    plot_obstacles!(axis, env.obstacles)
+
+    # Plot start and goal node
+    scatter!(axis, [planner.start.position[1]], [planner.start.position[2]])
+    scatter!(axis, [planner.goal.position[1]], [planner.goal.position[2]])
+
+    num_frames = length(planner.logs)
+    frame_indices = 1:num_frames
+
+    plotted_objects = []
+    record(figure, file_name, frame_indices; framerate=framerate) do frame_index
+        # At frame_index == 1, the movie shows only the start and goal node.
+        if frame_index == 1
+            return
+        end
+
+        # Delete nodes and lines on the previous frame
+        while length(plotted_objects) > 0
+            delete!(axis, plotted_objects[end])
+            pop!(plotted_objects)
+        end
+
+        log = planner.logs[frame_index]
+        nodes = log["planner"].nodes
+        nodes_from_start = log["planner"].nodes_from_start
+        nodes_from_goal = log["planner"].nodes_from_goal
+
+        push!(plotted_objects, plot_nodes!(axis, nodes; color=:dodgerblue))
+        push!(plotted_objects, plot_lines!(axis, nodes_from_start; color=:dodgerblue))
+        push!(plotted_objects, plot_lines!(axis, nodes_from_goal; color=:dodgerblue))
+        if log["is_goaled"]
+            path = log["path"]
             push!(plotted_objects, plot_nodes!(axis, path; color=:violetred2))
             push!(plotted_objects, plot_path!(axis, path; color=:violetred2))
         end

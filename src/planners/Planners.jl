@@ -10,7 +10,11 @@ export is_near_the_goal, extract_path, plan
 # from rrt_star.jl
 export RRTStar, plan
 
+# from rrt_connect.jl
+export RRTConnect, plan
+
 include("rrt.jl")
 include("rrt_star.jl")
+include("rrt_connect.jl")
 
 end # module
