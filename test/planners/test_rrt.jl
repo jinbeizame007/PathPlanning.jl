@@ -64,7 +64,7 @@ using StaticArrays
         node = Node(SA[1.0, 1.0])
         rrt.nodes = nodes
 
-        nearest_node_index = get_nearest_node_index(rrt, node)
+        nearest_node_index = get_nearest_node_index(rrt.nodes, node)
         nearest_node = rrt.nodes[nearest_node_index]
 
         @test nearest_node_index == 1
@@ -76,7 +76,7 @@ using StaticArrays
         rrt.nodes = [rrt.start]
 
         new_node = Node(SA[2.0, 2.0])
-        nearest_node_index = get_nearest_node_index(rrt, new_node)
+        nearest_node_index = get_nearest_node_index(rrt.nodes, new_node)
         nearest_node = rrt.nodes[nearest_node_index]
 
         extended_node = get_extended_node(rrt, nearest_node, new_node)

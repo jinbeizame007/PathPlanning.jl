@@ -144,12 +144,12 @@ function sample(rrt::AbstractRRT{N})::Node{N} where {N}
 end
 
 """
-    get_nearest_node_index(rrt::AbstractRRT{N}, new_node::Node{N})::Int64 where {N}
+    get_nearest_node_index(nodes::Vector{Node{N}}, new_node::Node{N})::Int64 where {N}
 
 Return the index of the node nearest to the given node in the graph.
 """
-function get_nearest_node_index(rrt::AbstractRRT{N}, new_node::Node{N})::Int64 where {N}
-    distances = [calc_distance(node, new_node) for node in rrt.nodes]
+function get_nearest_node_index(nodes::Vector{Node{N}}, new_node::Node{N})::Int64 where {N}
+    distances = [calc_distance(node, new_node) for node in nodes]
     _, index = findmin(distances)
     return index
 end
@@ -241,7 +241,7 @@ function plan(rrt::RRT{N})::Vector{Node{N}} where {N}
         end
 
         # Get the nearest node
-        nearest_node_index = get_nearest_node_index(rrt, new_node)
+        nearest_node_index = get_nearest_node_index(rrt.nodes, new_node)
         nearest_node = rrt.nodes[nearest_node_index]
 
         distance_from_nearest_node = calc_distance(nearest_node, new_node)
