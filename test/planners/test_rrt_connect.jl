@@ -32,13 +32,11 @@ using StaticArrays
             return !is_inside_any_obstacle(env, position)
         end
 
-        planner = RRTConnect(start, goal, low, high, step_size=1.5, max_iter=1000, is_approved=is_approved, enable_logging=true)
+        planner = RRTConnect(start, goal, low, high, step_size=1.0, max_iter=1000, is_approved=is_approved, enable_logging=true)
         path = plan(planner)
         @test length(path) > 0
         @test all(path[1].position .== start)
         @test all(path[end].position .== goal)
         @test all([!is_inside_any_obstacle(env, node.position) for node in path])
-        #using PathPlanning.Plot
-        #animate(env, planner)
     end
 end

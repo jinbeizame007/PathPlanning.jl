@@ -158,12 +158,18 @@ function plan(planner::RRTConnect{N})::Vector{Node{N}} where {N}
     planner.nodes_from_goal = [planner.goal]
 
     is_goaled = false
+    path = Vector{Node{N}}([])
     logs = Vector{Dict{String, Any}}([])
-    if planner.enable_logging
+    function save_log!(logs, is_goaled, planner, path)
         planner_copy = deepcopy(planner)
         planner_copy.nodes = get_all_nodes(planner_copy)
-        log = Dict("is_goaled" => is_goaled, "planner" => planner_copy)
+        log = Dict("is_goaled" => is_goaled, "planner" => planner_copy, "path" => path)
         push!(logs, log)
+        return nothing
+    end
+
+    if planner.enable_logging
+        save_log!(logs, is_goaled, planner, path)
     end
 
     for i in 1:planner.max_iter
@@ -206,7 +212,7 @@ function plan(planner::RRTConnect{N})::Vector{Node{N}} where {N}
                 # Combine path from start and path from goal
                 end_node_index_from_start = is_sampled_for_start_tree ? new_node_index : nearest_node_index
                 end_node_index_from_goal = is_sampled_for_start_tree ? nearest_node_index : new_node_index
-                
+
                 path_from_start = extract_path(planner.nodes_from_start, end_node_index_from_start)
                 path_from_goal = extract_path(planner.nodes_from_goal, end_node_index_from_goal)
                 path_to_goal = reverse_path(path_from_goal, end_node_index_from_goal)
@@ -220,10 +226,7 @@ function plan(planner::RRTConnect{N})::Vector{Node{N}} where {N}
                 end
 
                 if planner.enable_logging
-                    planner_copy = deepcopy(planner)
-                    planner_copy.nodes = get_all_nodes(planner_copy)
-                    log = Dict("is_goaled" => is_goaled, "planner" => planner_copy)
-                    push!(logs, log)
+                    save_log!(logs, is_goaled, planner, path)
                 end
 
                 # Add the new node to the graph
@@ -235,13 +238,7 @@ function plan(planner::RRTConnect{N})::Vector{Node{N}} where {N}
         end
 
         if planner.enable_logging
-            planner_copy = deepcopy(planner)
-            planner_copy.nodes = get_all_nodes(planner_copy)
-            log = Dict("is_goaled" => is_goaled, "planner" => planner_copy)
-            if is_goaled
-                log["path"] = path
-            end
-            push!(logs, log)
+            save_log!(logs, is_goaled, planner, path)
         end
 
         if is_goaled
