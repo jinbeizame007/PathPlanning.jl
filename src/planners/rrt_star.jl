@@ -1,3 +1,5 @@
+abstract type AbstractRRTStar{N} <: AbstractRRT{N} end
+
 """
     RRTStar{N}
 
@@ -16,7 +18,7 @@ A planner using RRT*.
 - `enable_logging::Bool`: whether to log (is_goaled, RRTStar instance) for each steps in planning
 - `logs::Vector{Dict{String, Any}}`: (is_goaled, RRTStar instance) for each steps in planning
 """
-mutable struct RRTStar{N} <: AbstractRRT{N}
+mutable struct RRTStar{N} <: AbstractRRTStar{N}
     start::Node{N}
     goal::Node{N}
     low::SVector{N,Float64}
@@ -90,12 +92,12 @@ function RRTStar(
 end
 
 """
-    add_node!(rrt_star::RRTStar{N}, new_node::Node{N}, parent_node_index::Int64)::Nothing where {N}
+    add_node!(rrt_star::AbstractRRTStar{N}, new_node::Node{N}, parent_node_index::Int64)::Nothing where {N}
 
 Add new node with the parent index and the cost to the graph.
 The cost of the new node is the cost of the parent node and the distance between the parent node and the new node.
 """
-function add_node!(rrt_star::RRTStar{N}, new_node::Node{N}, parent_node_index::Int64)::Nothing where {N}
+function add_node!(rrt_star::AbstractRRTStar{N}, new_node::Node{N}, parent_node_index::Int64)::Nothing where {N}
     parent_node = rrt_star.nodes[parent_node_index]
     new_node.parent = parent_node_index
     new_node.cost = parent_node.cost + calc_distance(parent_node, new_node)
@@ -104,11 +106,11 @@ function add_node!(rrt_star::RRTStar{N}, new_node::Node{N}, parent_node_index::I
 end
 
 """
-    get_shortest_parent_node_index(rrt::RRTStar{N}, new_node::Node{N})::Int64 where {N}
+    get_shortest_parent_node_index(rrt::AbstractRRTStar{N}, new_node::Node{N})::Int64 where {N}
 
 Get the parent node that minimizes the length between the start node and the new node.
 """
-function get_shortest_parent_node_index(rrt::RRTStar{N}, new_node::Node{N})::Int64 where {N}
+function get_shortest_parent_node_index(rrt::AbstractRRTStar{N}, new_node::Node{N})::Int64 where {N}
     tol = 1e-8
     distances = [calc_distance(node, new_node) <= rrt.step_size + tol ? node.cost : 1e10 + calc_distance(node, new_node) for node in rrt.nodes]
     _, index = findmin(distances)
@@ -116,20 +118,20 @@ function get_shortest_parent_node_index(rrt::RRTStar{N}, new_node::Node{N})::Int
 end
 
 """
-    get_near_node_indices(rrt::RRTStar{N}, new_node::Node{N}, distance::Float64)::Vector{Int64} where {N}
+    get_near_node_indices(rrt::AbstractRRT{N}, new_node::Node{N}, distance::Float64)::Vector{Int64} where {N}
 
 Get nodes within `distance` from the `new_node`.
 """
-function get_near_node_indices(rrt::RRTStar{N}, new_node::Node{N}, distance::Float64)::Vector{Int64} where {N}
+function get_near_node_indices(rrt::AbstractRRT{N}, new_node::Node{N}, distance::Float64)::Vector{Int64} where {N}
     return Vector{Int64}([i for i in 1:length(rrt.nodes) if calc_distance(rrt.nodes[i], new_node) <= distance])
 end
 
 """
-    rewire_near_nodes!(rrt_star::RRTStar{N}, near_node_indices::Vector{Int64}, new_node_index::Int64) where {N}
+    rewire_near_nodes!(rrt_star::AbstractRRTStar{N}, near_node_indices::Vector{Int64}, new_node_index::Int64) where {N}
 
 Change parent nodes to the new node if the new cost is smaller than the current cost.
 """
-function rewire_near_nodes!(rrt_star::RRTStar{N}, near_node_indices::Vector{Int64}, new_node_index::Int64) where {N}
+function rewire_near_nodes!(rrt_star::AbstractRRTStar{N}, near_node_indices::Vector{Int64}, new_node_index::Int64) where {N}
     new_node = rrt_star.nodes[new_node_index]
     for near_node_index in near_node_indices
         near_node = rrt_star.nodes[near_node_index]
