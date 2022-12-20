@@ -38,11 +38,11 @@ function is_approved(position::SVector{2,Float64})
 end
 
 # Plan a path
-rrt = RRT(start, goal, low, high; step_size=1.0, max_iter=1000, is_approved=is_approved)
-path = plan(rrt)
+planner = RRTStar(start, goal, low, high; step_size=1.5, max_iter=2000, is_approved=is_approved)
+path = plan(planner)
 
 # Visualize
-plot(env, rrt)
+animate(env, planner; framerate=60)
 ```
 
 # Animations
