@@ -14,7 +14,7 @@ using StaticArrays
 low = SA[0.0, 0.0]
 high = SA[50.0, 30.0]
 
-# Set start and goal
+# Set start and goal position
 start = SA[1.0, 1.0]
 goal = SA[48.0, 25.0]
 
