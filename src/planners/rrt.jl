@@ -6,10 +6,13 @@ Node configures a graph.
 # Fields
 - `position::SVector{N, Float64}`: position of the node in the search space
 - `parent::Union{Int64, Nothing}`: index of the parent node
+- `children::Set{Int64}`: indices of the child nodes
+- `cost::Float64`: total path length from the start node
 """
 mutable struct Node{N}
     position::SVector{N, Float64}
     parent::Union{Int64, Nothing}
+    children::Set{Int64}
     cost::Float64
 end
 
@@ -24,11 +27,11 @@ The index of the parent node is initiated as nothing.
 - `position::SVector{N, Float64}`: position of the node in the search space
 """
 function Node(position::SVector{N, Float64})::Node{N} where {N}
-    return Node{N}(position, nothing, 0.0)
+    return Node{N}(position, nothing, Set{Int64}(), 0.0)
 end
 
 function Node(position::SVector{N, Float64}, cost::Float64)::Node{N} where {N}
-    return Node{N}(position, nothing, cost)
+    return Node{N}(position, nothing, Set{Int64}(), cost)
 end
 
 """
