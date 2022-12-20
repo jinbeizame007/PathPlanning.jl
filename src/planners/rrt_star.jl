@@ -99,9 +99,15 @@ The cost of the new node is the cost of the parent node and the distance between
 """
 function add_node!(rrt_star::AbstractRRTStar{N}, new_node::Node{N}, parent_node_index::Int64)::Nothing where {N}
     parent_node = rrt_star.nodes[parent_node_index]
+
+    # Add new_node to nodes
     new_node.parent = parent_node_index
     new_node.cost = parent_node.cost + calc_distance(parent_node, new_node)
     push!(rrt_star.nodes, new_node)
+
+    # Add new_node_index to children of the parent node
+    new_node_index = length(rrt_star.nodes)
+    push!(parent_node.children, new_node_index)
     return nothing
 end
 
@@ -127,6 +133,20 @@ function get_near_node_indices(rrt::AbstractRRT{N}, new_node::Node{N}, distance:
 end
 
 """
+    update_costs!(planner::AbstractRRTStar{N}, node::Node{N}, diff_cost::Float64)::Nothing where N
+
+Update costs of all children recursively.
+"""
+function update_costs!(planner::AbstractRRTStar{N}, node::Node{N}, diff_cost::Float64)::Nothing where N
+    node.cost += diff_cost
+    for child_node_index in node.children
+        child_node = planner.nodes[child_node_index]
+        update_costs!(planner, child_node, diff_cost)
+    end
+    return nothing
+end
+
+"""
     rewire_near_nodes!(rrt_star::AbstractRRTStar{N}, near_node_indices::Vector{Int64}, new_node_index::Int64) where {N}
 
 Change parent nodes to the new node if the new cost is smaller than the current cost.
@@ -138,8 +158,16 @@ function rewire_near_nodes!(rrt_star::AbstractRRTStar{N}, near_node_indices::Vec
 
         new_cost = new_node.cost + calc_distance(new_node, near_node)
         if new_cost < near_node.cost
+            # Delete near_node from children of the current parent node of the near node
+            pop!(rrt_star.nodes[near_node.parent].children, near_node_index)
+
+            # Set new_node as parent of near_node
             near_node.parent = new_node_index
-            near_node.cost = new_cost
+            # Add near_node as children of new_node
+            push!(new_node.children, near_node_index)
+
+            diff_cost = new_cost - near_node.cost
+            update_costs!(rrt_star, near_node, diff_cost)
         end
     end
 
