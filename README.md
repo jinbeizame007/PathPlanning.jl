@@ -53,4 +53,7 @@ https://user-images.githubusercontent.com/16977484/208250130-c7edf1b8-8a0c-4288-
 https://user-images.githubusercontent.com/16977484/208293176-51a4fe1f-3628-4933-82a4-291e9f5bf78f.mp4
 
 ## RRT*
-https://user-images.githubusercontent.com/16977484/208250144-56b4238a-b468-467e-af81-bf964e7254c1.mp4
+https://user-images.githubusercontent.com/16977484/208668336-cdc4b867-4384-4b9a-ad63-775490e73389.mp4
+
+## Informed-RRT*
+https://user-images.githubusercontent.com/16977484/208668385-1ca719ff-1f63-4332-9ac2-f62ca66764d6.mp4
