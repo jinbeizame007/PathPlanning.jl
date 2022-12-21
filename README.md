@@ -1,6 +1,8 @@
-# PathPlanning
+# PathPlanning.jl
 [![CI](https://github.com/jinbeizame007/PathPlanning.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/jinbeizame007/PathPlanning.jl/actions/workflows/ci.yml)
 [![Global Docs](https://github.com/jinbeizame007/PathPlanning.jl/actions/workflows/documantation.yaml/badge.svg)](https://jinbeizame007.github.io/PathPlanning.jl/dev/)
+
+*PathPlanning.jl* is a framework for finding a path for robot or an agent to follow in order to reach a specific goal or detination. *PathPlanning.jl* offers high modularity and allows users to easily incorporate various constraints, such as obstacles or inverse kinematics, through the use of user-defined functions that determine whether or not a given waypoint is approved. This makes it a versatile tool for addressing a wide range of path planning problems.
 
 # Example
 
