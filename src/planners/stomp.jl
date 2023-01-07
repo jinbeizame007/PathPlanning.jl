@@ -116,7 +116,7 @@ end
     
 # end
 
-function calc_probabilities(stomp::STOMP{N}, costs::Matrix{Float64}; h::Float64=10.0) where N
+function calc_probabilities(stomp::STOMP{N}, costs::Matrix{Float64}; h::Float64=10.0)::Matrix{Float64} where N
     exponentials = Matrix{Float64}(undef, stomp.path_length, stomp.num_samples)
     min_costs = minimum(costs, dims=1)
     max_costs = maximum(costs, dims=1)
@@ -139,4 +139,13 @@ function plan(stomp::STOMP{N}) where N
     
     costs = stomp.cost_func(stomp, paths)
     probabilities = calc_probabilities(stomp, costs)
+
+    deltas = zeros(N, stomp.path_length)
+    for d in 1:N, n in 1:stomp.num_samples
+        deltas[d,:] .+= probabilities[:,n] .* noises[d,:,n]
+    end
+
+    for d in 1:N
+        mean[d,:] .= stomp.M * deltas[d,:]
+    end
 end
