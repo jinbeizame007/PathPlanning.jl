@@ -116,13 +116,13 @@ end
     
 # end
 
-function calc_probabilities(stomp::STOMP{N}, costs::Matrix{Float64}; h::Float64=10.0)::Matrix{Float64} where N
+function calc_probabilities(stomp::STOMP{N}, costs::Matrix{Float64}; h::Float64=10.0, epsilon::Float64=1e-4)::Matrix{Float64} where N
     exponentials = Matrix{Float64}(undef, stomp.path_length, stomp.num_samples)
     min_costs = minimum(costs, dims=1)
     max_costs = maximum(costs, dims=1)
     
     for n in 1:stomp.num_samples, t in 1:stomp.path_length
-        exponentials[t,n] = eps(-h * (costs[t,n] - min_costs[n]) / (max_costs[n] - min_costs[n]))
+        exponentials[t,n] = eps(-h * (costs[t,n] - min_costs[n]) / max(max_costs[n] - min_costs[n], epsilon))
     end
 
     probabilities = exponentials ./ sum(exponentials, dims=1)
@@ -130,22 +130,24 @@ function calc_probabilities(stomp::STOMP{N}, costs::Matrix{Float64}; h::Float64=
 end
 
 function plan(stomp::STOMP{N}) where N
-    mean = stomp.mean
-    noises = sample(stomp)
-    paths = Array{Float64}(undef, N, stomp.path_length, stomp.num_samples)
-    for i in 1:stomp.num_samples
-        paths[:,:,i] = mean + noises[:,:,i]
-    end
-    
-    costs = stomp.cost_func(stomp, paths)
-    probabilities = calc_probabilities(stomp, costs)
+    for _ in 1:3
+        mean = stomp.mean
+        noises = sample(stomp)
+        paths = Array{Float64}(undef, N, stomp.path_length, stomp.num_samples)
+        for i in 1:stomp.num_samples
+            paths[:,:,i] = mean + noises[:,:,i]
+        end
+        
+        costs = stomp.cost_func(stomp, paths)
+        probabilities = calc_probabilities(stomp, costs)
 
-    deltas = zeros(N, stomp.path_length)
-    for d in 1:N, n in 1:stomp.num_samples
-        deltas[d,:] .+= probabilities[:,n] .* noises[d,:,n]
-    end
+        deltas = zeros(N, stomp.path_length)
+        for d in 1:N, n in 1:stomp.num_samples
+            deltas[d,:] .+= probabilities[:,n] .* noises[d,:,n]
+        end
 
-    for d in 1:N
-        mean[d,:] .= stomp.M * deltas[d,:]
+        for d in 1:N
+            mean[d,:] .= stomp.M * deltas[d,:]
+        end
     end
 end
