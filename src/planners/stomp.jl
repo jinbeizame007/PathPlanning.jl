@@ -17,6 +17,7 @@ mutable struct STOMP{N}
     path_length::Int64
     dist::MvNormal{Float64}
     mean::Matrix{Float64}
+    M::Matrix{Float64}
 end
 
 function STOMP(
@@ -40,8 +41,15 @@ function STOMP(
         FINITE_DIFF_RULE_LENGTH:(FINITE_DIFF_RULE_LENGTH+path_length-1)
     ]
     R_inv = pinv(R)
+
+    n = size(R_inv,1)
+    M = Matrix{Float64}(undef, n, n)
+    for i in 1:n
+        M[:,i] .= R_inv[:,i] ./ maximum(R_inv[:,i]) ./ n
+    end
+
     dist = MvNormal(zeros(path_length), Symmetric(R_inv))
-    return STOMP{N}(start, goal, low, high, cost_func, num_samples, path_length, dist, mean)
+    return STOMP{N}(start, goal, low, high, cost_func, num_samples, path_length, dist, mean, M)
 end
 
 function linear_interpolation(start::SVector{N,Float64}, goal::SVector{N,Float64}, path_length::Int64)::Matrix{Float64} where N
@@ -108,6 +116,19 @@ end
     
 # end
 
+function calc_probabilities(stomp::STOMP{N}, costs::Matrix{Float64}; h::Float64=10.0) where N
+    exponentials = Matrix{Float64}(undef, stomp.path_length, stomp.num_samples)
+    min_costs = minimum(costs, dims=1)
+    max_costs = maximum(costs, dims=1)
+    
+    for n in 1:stomp.num_samples, t in 1:stomp.path_length
+        exponentials[t,n] = eps(-h * (costs[t,n] - min_costs[n]) / (max_costs[n] - min_costs[n]))
+    end
+
+    probabilities = exponentials ./ sum(exponentials, dims=1)
+    return probabilities
+end
+
 function plan(stomp::STOMP{N}) where N
     mean = stomp.mean
     noises = sample(stomp)
@@ -117,4 +138,5 @@ function plan(stomp::STOMP{N}) where N
     end
     
     costs = stomp.cost_func(stomp, paths)
+    probabilities = calc_probabilities(stomp, costs)
 end
