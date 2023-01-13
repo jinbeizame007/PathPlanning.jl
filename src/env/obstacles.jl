@@ -43,10 +43,10 @@ function calc_distance(
     position::Union{SVector{2,Float64},Vector{Float64}};
     pad_size::Float64=0.0
 )::Float64
-    x_min = obs.center[1] - obs.size[1] - pad_size
-    x_max = obs.center[1] + obs.size[1] + pad_size
-    y_min = obs.center[2] - obs.size[2] - pad_size
-    y_max = obs.center[2] + obs.size[2] + pad_size
+    x_min = obs.center[1] - obs.size[1]/2 - pad_size
+    x_max = obs.center[1] + obs.size[1]/2 + pad_size
+    y_min = obs.center[2] - obs.size[2]/2 - pad_size
+    y_max = obs.center[2] + obs.size[2]/2 + pad_size
 
     if position[1] < x_min
         if position[2] < y_min
@@ -60,9 +60,9 @@ function calc_distance(
         if position[2] < y_min
             return y_min - position[2]
         elseif position[2] <= y_max
-            return x_min - position[1]
-        else
             return -1 * min(x_max - position[1], position[1] - x_min, y_max - position[2], position[2] - y_min)
+        else
+            return position[2] - y_max
         end
     else
         if position[2] < y_min
