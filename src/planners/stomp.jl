@@ -1,3 +1,5 @@
+abstract type AbstractTrajOpt{N} <: AbstractPlanner{N} end
+
 const FINITE_DIFF_RULE_LENGTH = 7
 
 FINITE_CENTRAL_DIFF_COEFFS = [
@@ -7,7 +9,7 @@ FINITE_CENTRAL_DIFF_COEFFS = [
   0.0 1.0/12.0 -17.0/12.0 46.0/12.0 -46.0/12.0 17.0/12.0 -1.0/12.0
 ]
 
-mutable struct STOMP{N}
+mutable struct STOMP{N} <: AbstractTrajOpt{N}
     start::SVector{N,Float64}
     goal::SVector{N,Float64}
     low::SVector{N,Float64}
@@ -18,6 +20,8 @@ mutable struct STOMP{N}
     dist::MvNormal{Float64}
     mean::Matrix{Float64}
     M::Matrix{Float64}
+    enable_logging::Bool
+    logs::Vector{Dict{String, Any}}
 end
 
 function STOMP(
@@ -26,30 +30,33 @@ function STOMP(
     low::SVector{N,Float64},
     high::SVector{N,Float64};
     cost_func::Union{Function, Nothing}=nothing,
-    num_samples::Int64 = 10,
-    path_length::Int64 = 5,
-    dt::Float64 = 1.0
+    num_samples::Int64 = 50,
+    path_length::Int64 = 30,
+    dt::Float64 = 0.5,
+    enable_logging::Bool = false
 ) where N
     mean = linear_interpolation(start, goal, path_length)
 
-    start_index_padded = FINITE_DIFF_RULE_LENGTH
     path_length_padded = path_length + 2 * (FINITE_DIFF_RULE_LENGTH - 1)
     A_padded = create_finite_difference_matrix(path_length_padded)
-    R_padded = dt .* transpose(A_padded) * A_padded
+    R_padded = dt .* (transpose(A_padded) * A_padded)
     R = R_padded[
         FINITE_DIFF_RULE_LENGTH:(FINITE_DIFF_RULE_LENGTH+path_length-1),
         FINITE_DIFF_RULE_LENGTH:(FINITE_DIFF_RULE_LENGTH+path_length-1)
     ]
-    R_inv = pinv(R)
+    R_inv = inv(R)
 
     n = size(R_inv,1)
     M = Matrix{Float64}(undef, n, n)
+    M .= R_inv
     for i in 1:n
-        M[:,i] .= R_inv[:,i] ./ maximum(R_inv[:,i]) ./ n
+        M[:,i] .*= 1.0 / (path_length * M[i,i])
     end
 
     dist = MvNormal(zeros(path_length), Symmetric(R_inv))
-    return STOMP{N}(start, goal, low, high, cost_func, num_samples, path_length, dist, mean, M)
+
+    logs = Vector{Dict{String, Any}}([])
+    return STOMP{N}(start, goal, low, high, cost_func, num_samples, path_length, dist, mean, M, enable_logging, logs)
 end
 
 function linear_interpolation(start::SVector{N,Float64}, goal::SVector{N,Float64}, path_length::Int64)::Matrix{Float64} where N
@@ -62,32 +69,27 @@ end
 
 function create_finite_difference_matrix(path_length::Int64; dt::Float64=1.0, order::Int64=2)::Matrix{Float64}
     A = Matrix{Float64}(I, path_length, path_length)
-    multiplier = 1.0 / dt^order
-    half_finite_diff_rule_length = floor(Int64, FINITE_DIFF_RULE_LENGTH/2)
+    multiplier = 1.0 / (dt^order)
+    half_finite_diff_rule_length = div(FINITE_DIFF_RULE_LENGTH, 2)
 
-    for i in 1:path_length
+    for i in 0:path_length-1
         for j in -half_finite_diff_rule_length:half_finite_diff_rule_length
             index = i + j
 
-            if index < 1
-                index = 0
+            if index < 0 || path_length <= index
                 continue
             end
 
-            if path_length < index
-                index = path_length
-                continue
-            end
-
-            A[i,index] = multiplier * FINITE_CENTRAL_DIFF_COEFFS[1 + order, 1 + j + half_finite_diff_rule_length]
+            A[1+i,1+index] = multiplier * FINITE_CENTRAL_DIFF_COEFFS[1 + order, 1 + j + half_finite_diff_rule_length]
         end
     end
     return A
 end
 
-function create_inverse_positive_semi_definite_matrix(A::Matrix{Float64})::Matrix{Float64}
-    R_inv = inv(A * A)
-    return R_inv
+function create_smoothing_matrix(path_length::Int64, dt::Float64)
+    start_index_padded = FINITE_DIFF_RULE_LENGTH - 1
+    path_length_padded = path_length + 2 * (FINITE_DIFF_RULE_LENGTH - 1)
+
 end
 
 function sample(stomp::STOMP{N}) where N
@@ -96,7 +98,7 @@ function sample(stomp::STOMP{N}) where N
     for i in 1:stomp.num_samples*N
         noise[1+(i-1)%N, :, 1+floor(Int64, (i-1)/N)] .= samples[:,i]
     end
-    return noise
+    return 0.1 .* noise
 end
 
 function calc_distance_cost(stomp::STOMP{N}, env::Env, position::Vector{Float64}; pad_size::Float64=0.0) where N
@@ -112,33 +114,31 @@ function calc_distance_cost(stomp::STOMP{N}, env::Env, paths::Array{Float64}) wh
     return distance_costs
 end
 
-# function calc_cost(stomp::STOMP{N}, paths::Matrix{Float64}) where N
-    
-# end
-
-function calc_probabilities(stomp::STOMP{N}, costs::Matrix{Float64}; h::Float64=10.0, epsilon::Float64=1e-4)::Matrix{Float64} where N
-    exponentials = Matrix{Float64}(undef, stomp.path_length, stomp.num_samples)
-    min_costs = minimum(costs, dims=1)
-    max_costs = maximum(costs, dims=1)
-    
-    for n in 1:stomp.num_samples, t in 1:stomp.path_length
-        exponentials[t,n] = eps(-h * (costs[t,n] - min_costs[n]) / max(max_costs[n] - min_costs[n], epsilon))
-    end
-
-    probabilities = exponentials ./ sum(exponentials, dims=1)
+function calc_probabilities(stomp::STOMP{N}, costs::Matrix{Float64}; h::Float64=10.0, epsilon::Float64=1e-2)::Matrix{Float64} where N
+    exponentials = eps.(-h .* (costs .- minimum(costs)) ./ (max.(maximum(costs) - minimum(costs), epsilon)))
+    probabilities = exponentials ./ sum(exponentials, dims=2)
     return probabilities
 end
 
 function plan(stomp::STOMP{N}) where N
-    for _ in 1:3
+    logs = Vector{Dict{String, Any}}([])
+
+    for _ in 1:50
         mean = stomp.mean
         noises = sample(stomp)
         paths = Array{Float64}(undef, N, stomp.path_length, stomp.num_samples)
         for i in 1:stomp.num_samples
             paths[:,:,i] = mean + noises[:,:,i]
         end
+
+        if stomp.enable_logging
+            log = Dict("mean" => deepcopy(stomp.mean), "sampled_paths" => paths)
+            push!(logs, log)
+        end
         
+        # (path_length, num_samples)
         costs = stomp.cost_func(stomp, paths)
+        # (path_length, num_samples)
         probabilities = calc_probabilities(stomp, costs)
 
         deltas = zeros(N, stomp.path_length)
@@ -147,7 +147,12 @@ function plan(stomp::STOMP{N}) where N
         end
 
         for d in 1:N
-            mean[d,:] .= stomp.M * deltas[d,:]
+            stomp.mean[d,:] .-= stomp.M * deltas[d,:]
         end
+        println()
+        println(sum(costs)/length(costs))
     end
+
+    stomp.logs = logs
+    return stomp.mean
 end
