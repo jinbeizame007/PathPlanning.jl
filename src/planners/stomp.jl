@@ -108,6 +108,13 @@ function calc_distance_cost(stomp::STOMP{N}, env::Env, paths::Array{Float64}) wh
     return distance_costs
 end
 
+function calc_torque_cost(stomp::STOMP{N}, paths::Array{Float64}) where N
+    torque_cost = zeros(stomp.path_length, stomp.num_samples)
+    torque_cost[2:end-1,:] += sum(abs.(paths[:,2:end-1,:] - paths[:,1:end-2,:]), dims=1)[1,:,:]
+    torque_cost[2:end-1,:] += sum(abs.(paths[:,3:end,:] - paths[:,2:end-1,:]), dims=1)[1,:,:]
+    return torque_cost
+end
+
 function calc_probabilities(stomp::STOMP{N}, costs::Matrix{Float64}; h::Float64=10.0, epsilon::Float64=1e-2)::Matrix{Float64} where N
     exponentials = eps.(-h .* (costs .- minimum(costs)) ./ (max.(maximum(costs) - minimum(costs), epsilon)))
     probabilities = exponentials ./ sum(exponentials, dims=2)
