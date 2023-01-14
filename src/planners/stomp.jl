@@ -32,7 +32,7 @@ function STOMP(
     cost_func::Union{Function, Nothing}=nothing,
     num_samples::Int64 = 50,
     path_length::Int64 = 30,
-    dt::Float64 = 0.5,
+    dt::Float64 = 0.05,
     enable_logging::Bool = false
 ) where N
     mean = linear_interpolation(start, goal, path_length)
@@ -95,6 +95,16 @@ function sample(stomp::STOMP{N}) where N
     return 0.1 .* noise
 end
 
+function clip_noise!(stomp::STOMP{N}, mean::Matrix{Float64}, noises::Array{Float64}) where N
+    for d in 1:N
+        max_noises = stomp.high[d] .- mean[d,:]
+        min_noises = stomp.low[d] .- mean[d,:]
+        for t in 1:stomp.path_length, i in 1:stomp.num_samples
+            noises[d,t,i] = clamp(noises[d,t,i], min_noises[t], max_noises[t])
+        end
+    end
+end
+
 function calc_distance_cost(stomp::STOMP{N}, env::Env, position::Vector{Float64}; pad_size::Float64=0.0) where N
     min_distance = minimum([Envs.calc_distance(obs, position; pad_size=pad_size) for obs in env.obstacles])
     return -1 * min(min_distance, 0.0)
@@ -127,6 +137,7 @@ function plan(stomp::STOMP{N}) where N
     for _ in 1:50
         mean = stomp.mean
         noises = sample(stomp)
+        clip_noise!(stomp, mean, noises)
         paths = Array{Float64}(undef, N, stomp.path_length, stomp.num_samples)
         for i in 1:stomp.num_samples
             paths[:,:,i] = mean + noises[:,:,i]
