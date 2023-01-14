@@ -86,12 +86,6 @@ function create_finite_difference_matrix(path_length::Int64; dt::Float64=1.0, or
     return A
 end
 
-function create_smoothing_matrix(path_length::Int64, dt::Float64)
-    start_index_padded = FINITE_DIFF_RULE_LENGTH - 1
-    path_length_padded = path_length + 2 * (FINITE_DIFF_RULE_LENGTH - 1)
-
-end
-
 function sample(stomp::STOMP{N}) where N
     noise = zeros(N, stomp.path_length, stomp.num_samples)
     samples = rand(stomp.dist, stomp.num_samples * N)
