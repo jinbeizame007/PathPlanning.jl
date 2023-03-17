@@ -73,15 +73,12 @@ function create_example_2D_env()::Env
     return Env(obstacles)
 end
 
-function create_example_2D_env2()::Env
+function create_example_2D_env_stomp()::Env
     obstacles = [
-        #RectObstacle(SA[18.0, 13.0], SA[8.0, 2.0]),
         RectObstacle(SA[22.0, 23.5], SA[8.0, 3.0]),
-        #RectObstacle(SA[37.0, 15.0], SA[10.0, 2.0]),
         CircleObstacle(SA[7.0, 12.0], 3.0),
         CircleObstacle(SA[45.0, 18.0], 2.0),
         CircleObstacle(SA[18.0, 7.0], 4.0),
-        #CircleObstacle(SA[23.0, 13.0], 2.0),
         CircleObstacle(SA[37.0, 7.0], 3.0),
         CircleObstacle(SA[35.0, 22.0], 4.0),
     ]
