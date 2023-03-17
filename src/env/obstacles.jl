@@ -35,7 +35,7 @@ function is_inside(
     position::Union{SVector{2,Float64},Vector{Float64}};
     pad_size::Float64=0.0
 )::Bool where {N}
-    return all(obs.center - ((obs.size./2).+pad_size) .<= position .<= obs.center + ((obs.size./2)+pad_size))
+    return all(obs.center - ((obs.size./2).+pad_size) .<= position .<= obs.center + ((obs.size./2).+pad_size))
 end
 
 function calc_distance(
