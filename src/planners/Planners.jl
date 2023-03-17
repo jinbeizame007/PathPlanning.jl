@@ -1,5 +1,8 @@
 module Planners
 
+import PathPlanning.Envs as Envs
+using PathPlanning.Envs
+using Distributions
 using LinearAlgebra
 using StaticArrays
 
@@ -17,9 +20,13 @@ export RRTStar, plan
 # from informed_rrt_star.jl
 export InformedRRTStar, plan
 
+# from stomp.jl
+export STOMP, calc_distance_cost, calc_torque_cost
+
 include("rrt.jl")
 include("rrt_connect.jl")
 include("rrt_star.jl")
 include("informed_rrt_star.jl")
+include("stomp.jl")
 
 end # module

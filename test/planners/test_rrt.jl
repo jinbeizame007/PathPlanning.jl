@@ -82,8 +82,6 @@ using StaticArrays
         extended_node = get_extended_node(rrt, nearest_node, new_node)
         
         @test calc_distance(nearest_node, extended_node) ≈ rrt.step_size
-        println(extended_node)
-        println(nearest_node)
     end
 
     @testset "RRT-IsNearTheGoal" begin

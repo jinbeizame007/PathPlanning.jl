@@ -32,9 +32,47 @@ Return if the `position` is inside the RectObstacle.
 """
 function is_inside(
     obs::RectObstacle{N},
-    position::SVector{N,Float64},
+    position::Union{SVector{2,Float64},Vector{Float64}};
+    pad_size::Float64=0.0
 )::Bool where {N}
-    return all(obs.center - obs.size./2 .<= position .<= obs.center + obs.size./2)
+    return all(obs.center - ((obs.size./2).+pad_size) .<= position .<= obs.center + ((obs.size./2).+pad_size))
+end
+
+function calc_distance(
+    obs::RectObstacle{2},
+    position::Union{SVector{2,Float64},Vector{Float64}};
+    pad_size::Float64=0.0
+)::Float64
+    x_min = obs.center[1] - obs.size[1]/2 - pad_size
+    x_max = obs.center[1] + obs.size[1]/2 + pad_size
+    y_min = obs.center[2] - obs.size[2]/2 - pad_size
+    y_max = obs.center[2] + obs.size[2]/2 + pad_size
+
+    if position[1] < x_min
+        if position[2] < y_min
+            return ((x_min - position[1])^2 + (y_min - position[2])^2)^0.5
+        elseif position[2] <= y_max
+            return x_min - position[1]
+        else
+            return ((x_min - position[1])^2 + (y_max - position[2])^2)^0.5
+        end
+    elseif position[1] <= x_max
+        if position[2] < y_min
+            return y_min - position[2]
+        elseif position[2] <= y_max
+            return -1 * min(x_max - position[1], position[1] - x_min, y_max - position[2], position[2] - y_min)
+        else
+            return position[2] - y_max
+        end
+    else
+        if position[2] < y_min
+            return ((x_max - position[1])^2 + (y_min - position[2])^2)^0.5
+        elseif position[2] <= y_max
+            return position[1] - x_max
+        else
+            return ((x_max - position[1])^2 + (y_max - position[2])^2)^0.5
+        end
+    end
 end
 
 """
@@ -69,8 +107,17 @@ Return if the `position` is inside the CircleObstacle.
 """
 function is_inside(
     obs::CircleObstacle{N},
-    position::SVector{N,Float64},
+    position::Union{SVector{2,Float64},Vector{Float64}};
+    pad_size::Float64=0.0
 )::Bool where {N}
     distance = sum((obs.center - position).^2.0)^0.5
-    return distance <= obs.radius
+    return distance <= obs.radius + pad_size
+end
+
+function calc_distance(
+    obs::CircleObstacle{N},
+    position::Union{SVector{2,Float64},Vector{Float64}};
+    pad_size::Float64=0.0
+)::Float64 where {N}
+    return sum((obs.center .- position).^2)^0.5 - (obs.radius + pad_size)
 end
