@@ -21,7 +21,7 @@ export RRTStar, plan
 export InformedRRTStar, plan
 
 # from stomp.jl
-export STOMP, calc_distance_cost
+export STOMP, calc_distance_cost, calc_torque_cost
 
 include("rrt.jl")
 include("rrt_connect.jl")
