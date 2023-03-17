@@ -161,8 +161,6 @@ function plan(stomp::STOMP{N}) where N
         for d in 1:N
             stomp.mean[d,:] .-= stomp.M * deltas[d,:]
         end
-        println()
-        println(sum(costs)/length(costs))
     end
 
     stomp.logs = logs
