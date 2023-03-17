@@ -59,3 +59,6 @@ https://user-images.githubusercontent.com/16977484/208668336-cdc4b867-4384-4b9a-
 
 ## Informed-RRT*
 https://user-images.githubusercontent.com/16977484/208668385-1ca719ff-1f63-4332-9ac2-f62ca66764d6.mp4
+
+## STOMP (Stochastic Trajectory Optimization for Motion Planning)
+https://user-images.githubusercontent.com/16977484/225943486-47a76743-0149-4813-8342-8cacccd4a7eb.mp4
