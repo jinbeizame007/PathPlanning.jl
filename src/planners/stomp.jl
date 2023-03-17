@@ -92,7 +92,7 @@ function sample(stomp::STOMP{N}) where N
     for i in 1:stomp.num_samples*N
         noise[1+(i-1)%N, :, 1+floor(Int64, (i-1)/N)] .= samples[:,i]
     end
-    return 0.1 .* noise
+    return 0.05 .* noise
 end
 
 function clip_noise!(stomp::STOMP{N}, mean::Matrix{Float64}, noises::Array{Float64}) where N
